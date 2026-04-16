@@ -1,0 +1,148 @@
+{
+  "id": "org.bioe234.function.crispr.validation_planner.v1",
+  "name": "CRISPR Validation Planner",
+  "description": "Takes upstream CRISPR design decisions (edit type, target locus, and optionally the delivery method) and returns a structured validation checklist recommending sequencing strategies, molecular assays, experimental controls, and an estimated timeline.",
+  "type": "function",
+  "keywords": ["CRISPR", "validation", "sequencing", "assay", "checklist", "knockout", "knock-in", "base edit", "prime edit", "CRISPRa", "CRISPRi"],
+  "date_created": null,
+  "date_last_modified": null,
+
+  "inputs": [
+    {
+      "name": "edit_type",
+      "type": "string",
+      "description": "The category of CRISPR edit to validate. One of: knockout, knock-in, base_edit, prime_edit, CRISPRa, CRISPRi, large_deletion."
+    },
+    {
+      "name": "locus",
+      "type": "string",
+      "description": "Target gene symbol or genomic locus (e.g. 'BRCA1', 'TP53', 'EMX1')."
+    },
+    {
+      "name": "delivery_method",
+      "type": "string",
+      "optional": true,
+      "description": "How the CRISPR reagents are delivered. Accepts freeform strings (e.g. 'RNP electroporation', 'lipofection', 'lentiviral transduction') which are normalized internally. Defaults to 'unspecified'."
+    }
+  ],
+
+  "outputs": [
+    {
+      "type": "object",
+      "description": "A validation plan containing: edit_type, locus, delivery_method (normalized), recommended_sequencing (primary strategy), validation_checklist (ordered list of assay steps with category, assay name, purpose, priority, and expected result), controls (recommended experimental controls), estimated_timeline_days, and notes."
+    }
+  ],
+
+  "examples": [
+    {
+      "input":  { "edit_type": "knockout", "locus": "BRCA1" },
+      "output": {
+        "result": {
+          "edit_type": "knockout",
+          "locus": "BRCA1",
+          "delivery_method": "unspecified",
+          "recommended_sequencing": "Sanger sequencing",
+          "validation_checklist": [
+            {
+              "step": 1,
+              "category": "genomic",
+              "assay": "T7 Endonuclease I (T7E1) mismatch assay",
+              "purpose": "Rapid screening for heteroduplex DNA indicating successful indel formation",
+              "priority": "required",
+              "expected_result": "Cleavage bands on agarose gel at expected fragment sizes"
+            },
+            {
+              "step": 2,
+              "category": "genomic",
+              "assay": "Sanger sequencing of target amplicon",
+              "purpose": "Confirm the exact indel sequence at the cut site",
+              "priority": "required",
+              "expected_result": "Mixed chromatogram peaks downstream of cut site (bulk) or clean indel sequence (clonal)"
+            }
+          ],
+          "controls": [
+            { "control_type": "negative", "description": "Non-targeting gRNA control (same delivery, scrambled/non-targeting guide)" },
+            { "control_type": "negative", "description": "Untreated wild-type cells" }
+          ],
+          "estimated_timeline_days": 14,
+          "notes": [
+            "Consider clonal isolation for homozygous knockout confirmation before functional studies.",
+            "If antibody for BRCA1 is unavailable, RT-qPCR or functional assays can substitute for Western blot."
+          ]
+        }
+      }
+    },
+    {
+      "input":  { "edit_type": "base_edit", "locus": "TP53", "delivery_method": "RNP electroporation" },
+      "output": {
+        "result": {
+          "edit_type": "base_edit",
+          "locus": "TP53",
+          "delivery_method": "RNP",
+          "recommended_sequencing": "NGS amplicon sequencing",
+          "validation_checklist": [
+            {
+              "step": 1,
+              "category": "genomic",
+              "assay": "Sanger sequencing of target amplicon",
+              "purpose": "Confirm the precise base conversion at the target position",
+              "priority": "required",
+              "expected_result": "Clean single-peak change at the target nucleotide (clonal) or mixed peak (bulk)"
+            }
+          ],
+          "controls": [
+            { "control_type": "negative", "description": "Catalytically dead base editor control (same gRNA, dead deaminase)" },
+            { "control_type": "negative", "description": "Untreated wild-type cells" },
+            { "control_type": "delivery", "description": "Mock electroporation control (electroporation without RNP cargo) to assess electroporation-induced toxicity" }
+          ],
+          "estimated_timeline_days": 10,
+          "notes": [
+            "ABE (adenine) and CBE (cytosine) editors have different bystander profiles — check all C's or A's within the ~4-8 nt editing window.",
+            "Indel byproducts are rare with base editors but should be monitored via NGS."
+          ]
+        }
+      }
+    },
+    {
+      "input":  { "edit_type": "CRISPRa", "locus": "MYC" },
+      "output": {
+        "result": {
+          "edit_type": "CRISPRa",
+          "locus": "MYC",
+          "delivery_method": "unspecified",
+          "recommended_sequencing": "RT-qPCR",
+          "validation_checklist": [
+            {
+              "step": 1,
+              "category": "transcript",
+              "assay": "RT-qPCR",
+              "purpose": "Measure fold-change in MYC transcript levels upon activation",
+              "priority": "required",
+              "expected_result": "Significant upregulation (typically >2-fold) of MYC mRNA relative to non-targeting control"
+            }
+          ],
+          "controls": [
+            { "control_type": "negative", "description": "Non-targeting gRNA with the same dCas9 activator system" },
+            { "control_type": "negative", "description": "Untreated wild-type cells" }
+          ],
+          "estimated_timeline_days": 7,
+          "notes": [
+            "CRISPRa does not alter the DNA sequence — genomic sequencing is not necessary for validation.",
+            "Multiple gRNAs tiling the promoter region of MYC can be tested to maximize activation."
+          ]
+        }
+      }
+    }
+  ],
+
+  "execution_details": {
+    "language": "Python",
+    "source": "modules/seq_basics/tools/validation_planner.py",
+    "initialization": "initiate",
+    "execution": "run",
+    "disposal": null,
+
+    "mcp_name": "crispr_validation_planner",
+    "seq_params": []
+  }
+}

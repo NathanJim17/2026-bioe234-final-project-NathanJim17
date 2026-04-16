@@ -28,5 +28,36 @@
     "expected_tool": "dna_translate",
     "expected_args": { "seq": "AATGGCTAAA", "start": 1, "frame": 1 },
     "notes": "Tests the AI's ability to map natural language coordinate descriptions to start/end parameters."
+  },
+
+  {
+    "prompt": "What validation experiments should I run for a CRISPR knockout of BRCA1?",
+    "expected_tool": "crispr_validation_planner",
+    "expected_args": { "edit_type": "knockout", "locus": "BRCA1" },
+    "notes": "Basic knockout with default delivery method. Should return genomic and protein-level assays."
+  },
+  {
+    "prompt": "I'm doing a base edit on TP53 delivered via RNP electroporation. What sequencing and assays do I need to validate it?",
+    "expected_tool": "crispr_validation_planner",
+    "expected_args": { "edit_type": "base_edit", "locus": "TP53", "delivery_method": "RNP electroporation" },
+    "notes": "Tests delivery normalization — 'RNP electroporation' should resolve to 'RNP' internally."
+  },
+  {
+    "prompt": "We want to activate MYC expression using CRISPRa. What's the validation plan?",
+    "expected_tool": "crispr_validation_planner",
+    "expected_args": { "edit_type": "CRISPRa", "locus": "MYC" },
+    "notes": "CRISPRa does not alter DNA — the plan should focus on transcript and protein assays, not genomic sequencing."
+  },
+  {
+    "prompt": "Plan the validation for a knock-in of GFP at the ROSA26 locus using lentiviral transduction.",
+    "expected_tool": "crispr_validation_planner",
+    "expected_args": { "edit_type": "knock-in", "locus": "ROSA26", "delivery_method": "lentiviral transduction" },
+    "notes": "Tests the full pipeline: knock-in rules plus lentiviral-specific integration controls."
+  },
+  {
+    "prompt": "How should I validate a large deletion in the BCL11A enhancer region?",
+    "expected_tool": "crispr_validation_planner",
+    "expected_args": { "edit_type": "large_deletion", "locus": "BCL11A" },
+    "notes": "Large deletion validation requires deletion-spanning PCR and breakpoint sequencing."
   }
 ]
